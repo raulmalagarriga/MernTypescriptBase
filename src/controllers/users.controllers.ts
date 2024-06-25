@@ -1,21 +1,15 @@
 import {Request, Response} from 'express';
-import {
-    User,
-    getUsers,
-    getUserById,
-    createUser,
-    updateUser,
-    deleteUser
-} from '../models/users.models';
+import { createUser, getUsers, getUserById, updateUser, deleteUser } from '../services/users.services';
+import { IUser } from '../models/users.models';
 
 // Business logic here
-export const getUsersController = (req: Request, res: Response) : void => {
-    const users: User[] = getUsers();
+export const getUsersController = async (req: Request, res: Response) : Promise<void> => {
+    const users: IUser[] = await getUsers();
     res.status(200).json({users});
 };
-export const getUserByIdController = (req: Request, res: Response) : void => {
-    const id: number = parseInt(req.params.id, 10);
-    const user: User | undefined = getUserById(id);
+export const getUserByIdController = async(req: Request, res: Response) : Promise<void> => {
+    const id: string = req.params.id;
+    const user: IUser | null = await getUserById(id);
     if(user){
         res.status(200).json({user});
     }else{
@@ -24,24 +18,31 @@ export const getUserByIdController = (req: Request, res: Response) : void => {
     return;
 };
 export const createUserController = (req: Request, res: Response) : void => {
-    const user: User = req.body;
+    const user: IUser = req.body;
     createUser(user);
     res.status(201).json({message: 'User created' , user});
     return;
 };
-export const updateUserController = (req: Request, res: Response) : void => {
-    const id: number = parseInt(req.params.id, 10);
-    const data: User = req.body;
-    data.id = id;
-    updateUser(data);
-    res.status(200).json({message: 'User updated', user: data});
+export const updateUserController = async(req: Request, res: Response) : Promise<void> => {
+    const id: string = req.params.id;
+    const data: IUser = req.body;
+    const resp = await updateUser(id, data);
+    if(resp){
+        res.status(200).json({message: 'User updated', user: data});
+    }else{
+        res.status(404).json({message: 'User not found'});
+    }
     return;
 };
-export const deleteUserController = (req:Request, res:Response) : void => {
-    const id: number = parseInt(req.params.id, 10);
-    deleteUser(id);
-    res.status(200).json({
-        message: `User ${id} deleted`,
-    });
+export const deleteUserController = async(req:Request, res:Response) : Promise<void> => {
+    const id: string = req.params.id;
+    const resp = await deleteUser(id);
+    if(resp){
+        res.status(200).json({
+            message: `User ${id} deleted`,
+        });
+    }else{
+        res.status(404).json({message: 'User not found'});
+    }
     return;
 };

@@ -1,4 +1,4 @@
-import {Router, Request, Response} from 'express';
+import { Router } from 'express';
 import {
     getUsersController,
     getUserByIdController,
@@ -16,8 +16,8 @@ router.get('/:id', getUserByIdController);
 
 router.post('/', validateUser, createUserController);
 
-router.put('/', validateUser, updateUserController);
+router.put('/:id', validateUser, updateUserController);
 
-router.delete('/', deleteUserController);
+router.delete('/:id', deleteUserController);
 
 export default router;
