@@ -11,7 +11,8 @@ export const encryptString = (input: string) : string => {
 // const key = process.env.SECRET_KEY;
 const key = 'nmLfIhirNprAoNkGv7qaod1AotOXwMHq';
 export const generateToken = (id: string) : string => {
-    const token = jwt.sign(id, key, {expiresIn: '1h'});
+    const payload = {userId: id}
+    const token = jwt.sign(payload, key, {expiresIn: '1h'});
     return token;
 }
 

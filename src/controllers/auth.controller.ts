@@ -1,6 +1,6 @@
 import {Request, Response} from 'express';
 import { IUser } from '../models/users.models';
-import { encryptString } from '../utils/security';
+import { encryptString, generateToken } from '../utils/security';
 import { authUser } from '../services/auth.services';
 
 // Business logic here
@@ -10,9 +10,12 @@ export const authUserController = async(req: Request, res: Response) : Promise<v
     const encrypted = encryptString(user.password);
     user.password = encrypted;
     const resp = await authUser(user);
-    console.log(resp)
+    // console.log(resp)
     if(resp){
-        res.status(200).json({message: `User ${resp.fullname} is authenticated`, data: { username: resp.username, fullName: resp.fullname, email: resp.email }});
+        const uid = (resp._id as string);
+        console.log(uid)
+        const token = generateToken(uid)
+        res.status(200).json({message: `User ${resp.fullname} is authenticated`, data: { _id: uid, username: resp.username, fullName: resp.fullname, email: resp.email, token }});
     }else{
         res.status(404).json({message: 'User not found'});
     }
