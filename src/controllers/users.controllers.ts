@@ -1,6 +1,7 @@
 import {Request, Response} from 'express';
 import { createUser, getUsers, getUserById, updateUser, deleteUser } from '../services/users.services';
 import { IUser } from '../models/users.models';
+import { encryptString } from '../utils/security';
 
 // Business logic here
 export const getUsersController = async (req: Request, res: Response) : Promise<void> => {
@@ -17,9 +18,15 @@ export const getUserByIdController = async(req: Request, res: Response) : Promis
     }
     return;
 };
-export const createUserController = (req: Request, res: Response) : void => {
+export const createUserController = async(req: Request, res: Response) : Promise<void> => {
     const user: IUser = req.body;
-    createUser(user);
+    const encrypted = encryptString(user.password);
+    user.password = encrypted;
+    const resp = await createUser(user);
+    if(resp == null){
+        res.status(400).json({message: 'Email or username is already in use'});
+        return;
+    }
     res.status(201).json({message: 'User created' , user});
     return;
 };

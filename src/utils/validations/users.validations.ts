@@ -8,9 +8,10 @@ import {
     } from 'joi'; 
 
     export const userSchema = Joi.object({
-        name: Joi.string().required(),
+        username: Joi.string().trim().required(),
         email: Joi.string().email().required(),
         password: Joi.string().required().min(8),
+        fullname: Joi.string().required(),
     });
     
     export const validateUser = (
