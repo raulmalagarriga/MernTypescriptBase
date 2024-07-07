@@ -1,6 +1,8 @@
 import { createHash } from 'crypto';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import { NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
+
 export const encryptString = (input: string) : string => {
     const hash = createHash('sha256');
     hash.update(input);
@@ -8,44 +10,37 @@ export const encryptString = (input: string) : string => {
     return encrypted;
 }
 
-// const key = process.env.SECRET_KEY;
 const key = 'nmLfIhirNprAoNkGv7qaod1AotOXwMHq';
+// const key = process.env.SECRET_KEY;
 export const generateToken = (id: string) : string => {
     const payload = {userId: id}
     const token = jwt.sign(payload, key, {expiresIn: '1h'});
     return token;
 }
 
-export const verifyToken = (token: string) : boolean => {
-    let isValid: boolean = true;
-    jwt.verify(token, key, (err, decoded) => {
-        if(err){
-            isValid = false;
-        }
-    });
-    return isValid;
+// Middleware for revalidate token
+interface DecodedToken extends JwtPayload {
+    userId: string;
 }
 
-// const revalidateToken = (token: string) : object => {
-//     let isValid: boolean = true;
-//     let data;
-//     jwt.verify(token, key, (err, decoded) => {
-//         if(err){
-//             isValid = false; 
-//             data = null;
-//         }else{
-//             isValid = true;
-//             data = decoded;
-//         }
-//     });
-//     // Token is valid, check the expiration time
-//     const currentTime = Math.floor(Date.now() / 1000);
-//     if (data.exp - currentTime < 60 * 10) {
-//     // Token will expire in less than 10 minutes, issue a new one
-//         const newUser = {
-//             id: data.id,
-//             username: data.username,
-//             email: data.email,
-//         };
-//     }
-// }
+export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: 'No token provided' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, key) as DecodedToken;
+        req.body.userId = decoded.userId;
+        next();
+    } catch (err) {
+        if (err instanceof jwt.JsonWebTokenError) {
+            return res.status(401).json({ message: 'Invalid token' });
+        } else if (err instanceof jwt.TokenExpiredError) {
+            return res.status(401).json({ message: 'Token expired' });
+        } else {
+            return res.status(500).json({ message: 'Error verifying token' });
+        }
+    }
+};

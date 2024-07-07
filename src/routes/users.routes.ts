@@ -7,10 +7,11 @@ import {
     deleteUserController
 } from '../controllers/users.controllers';
 import { validateUser } from '../utils/validations/users.validations';
+import { verifyToken } from '../utils/security';
 const router = Router();
 
 // ROUTES
-router.get('/', getUsersController);
+router.get('/', verifyToken, getUsersController);
 
 router.get('/:id', getUserByIdController);
 
