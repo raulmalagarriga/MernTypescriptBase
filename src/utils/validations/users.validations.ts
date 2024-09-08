@@ -12,6 +12,7 @@ import {
         email: Joi.string().email().required(),
         password: Joi.string().required().min(8),
         fullname: Joi.string().required(),
+        type: Joi.number().required(),
     });
     
     export const validateUser = (

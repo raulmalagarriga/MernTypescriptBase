@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import user from "../models/users.models";
 import { IUser } from "../models/users.models";
-
+// Data base access
 export const createUser = async (userData: IUser) : Promise<IUser | null> => {
     try{
         // verify if unique user data exists (username and email)
