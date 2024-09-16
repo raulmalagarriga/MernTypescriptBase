@@ -3,6 +3,8 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
 
+dotenv.config();
+
 export const encryptString = (input: string) : string => {
     const hash = createHash('sha256');
     hash.update(input);
@@ -10,10 +12,12 @@ export const encryptString = (input: string) : string => {
     return encrypted;
 }
 
-const key = 'nmLfIhirNprAoNkGv7qaod1AotOXwMHq';
-// const key = process.env.SECRET_KEY;
+const key = process.env.SECRET_KEY;
 export const generateToken = (id: string) : string => {
     const payload = {userId: id}
+    if(!key){
+        throw new Error('JWT_SECRET_KEY is not defined in the environment variables');
+    }
     const token = jwt.sign(payload, key, {expiresIn: '1h'});
     return token;
 }
@@ -29,7 +33,9 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
     if (!token) {
         return res.status(401).json({ message: 'No token provided' });
     }
-
+    if(!key){
+        throw new Error('JWT_SECRET_KEY is not defined in the environment variables');
+    }
     try {
         const decoded = jwt.verify(token, key) as DecodedToken;
         req.body.userId = decoded.userId;
